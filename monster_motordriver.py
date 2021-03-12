@@ -3,53 +3,91 @@ from time import sleep
 
 
 
-in1 = 15
-in2 = 13
-in3 = 37
-in4 = 29
-pwm1 = 33
-pwm2 = 32
+# dir1 = 15
+# dir2 = 13
+# in3 = 37
+# in4 = 29
+
+dir1 = 12
+pwm1 = 32
+
+dir2 = 16
+pwm2 = 33
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 
-#mtr 1
-GPIO.setup(in1, GPIO.OUT)
-GPIO.setup(in2, GPIO.OUT)
+GPIO.setup(dir1, GPIO.OUT)
 GPIO.setup(pwm1, GPIO.OUT)
 
-GPIO.output(in1, True)
-GPIO.output(in2, False)
-GPIO.output(pwm1, True)
+GPIO.setup(dir2, GPIO.OUT)
+GPIO.setup(pwm2, GPIO.OUT)
+
 
 mtr1_pwm = GPIO.PWM(pwm1, 1023)
-mtr1_pwm.start(100)
+mtr2_pwm = GPIO.PWM(pwm2, 1023)
 
+def mtr_cntrl(instruction, speed=70):
+    mtr1_pwm.start(0)
+    mtr2_pwm.start(0)
+    if instruction=='f':
+        GPIO.output(dir1, True)
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+    
+    elif instruction=='b':
+        GPIO.output(dir1, False)
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
 
+    elif instruction=='l':
+        GPIO.output(dir1, True)
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
 
-# mtr 2
-# GPIO.setup(in3, GPIO.OUT)
-# GPIO.setup(in4, GPIO.OUT)
-# GPIO.setup(pwm2, GPIO.OUT)
+    elif instruction=='r':
+        GPIO.output(dir1, False)
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+    
+    elif instruction=='fl':
+        GPIO.output(dir1, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(0)
 
-# GPIO.output(in3, True)
-# GPIO.output(in4, False)
-# GPIO.output(pwm2, True)
+    elif instruction=='br':
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(speed)
 
-# mtr2_pwm = GPIO.PWM(pwm2, 1023)
-# mtr2_pwm.start(30)
+    elif instruction=='fr':
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(speed)
+
+    elif instruction=='bl':
+        GPIO.output(dir1, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(0)
+    
+    elif instruction=='s':
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(0)
+    elif instruction=='++' and speed<100:
+        speed+=10
+    elif instruction=='--' and speed>10:
+        speed-=10
+    else:
+        print('not able to unsderstand instruction')
+        
 
 
 while True:
-    pass
-    # for duty in range(100,0,-1):
-    #     print(f'motor 1 {duty}')
-    #     mtr1_pwm.ChangeDutyCycle(duty) #provide duty cycle in the range 0-100
-    #     sleep(0.1)
-    # sleep(0.5)
-    
-    # for duty in range(100,-1,-1):
-    #     print(f'motor 2 {duty}')
-    #     mtr2_pwm.ChangeDutyCycle(duty)
-    #     sleep(0.1)
-    # sleep(0.5)
+    ins = input('Enter instruction: ')
+    mtr_cntrl(ins)

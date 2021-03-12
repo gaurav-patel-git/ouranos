@@ -4,7 +4,7 @@ import time, threading
 
 
 def connect_to_server():      
-    SERVER = "52.66.240.187"
+    SERVER = '192.168.43.32'
     PORT = 5555
     ADDR = (SERVER, PORT)
     HEADER = 64
@@ -26,21 +26,23 @@ def connect_to_server():
 
 # def set_pins():
 # motor pins
-in1 = 12
-in2 = 16
-in3 = 18
-in4 = 22
+dir1 = 12
+pwm1 = 32
 
+dir2 = 16
+pwm2 = 33
+
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(in1, GPIO.OUT)
-GPIO.setup(in2, GPIO.OUT)
-GPIO.setup(in3, GPIO.OUT)
-GPIO.setup(in4, GPIO.OUT)
 
-GPIO.output(in1, True)
-GPIO.output(in2, True)
-GPIO.output(in3, True)
-GPIO.output(in4, True)
+GPIO.setup(dir1, GPIO.OUT)
+GPIO.setup(pwm1, GPIO.OUT)
+
+GPIO.setup(dir2, GPIO.OUT)
+GPIO.setup(pwm2, GPIO.OUT)
+
+mtr1_pwm = GPIO.PWM(pwm1, 1023)
+mtr2_pwm = GPIO.PWM(pwm2, 1023)
 
 # piston pins
 pst1, pst2 = 40, 32
@@ -54,7 +56,7 @@ GPIO.output(pst2, True)
 
 in1_hvr = 37
 in2_hvr = 35
-en_hvr = 33
+en_hvr = 31
 speed = 100
 
 GPIO.setup(in1_hvr,GPIO.OUT)
@@ -97,55 +99,66 @@ def send_msg(msg):
     print(client.recv(2084).decode(FORMAT))
 
 
-def motor_cntrl(instruction):
-        # instruction = client.recv(2048).decode()
-        # instruction = instruction.strip()
-    if instruction:
-        # print(instruction)
-        #d=int(input())
-        if instruction=='f':
-            GPIO.output(in1, True)
-            GPIO.output(in2, False)
-            GPIO.output(in3, True)
-            GPIO.output(in4, False)
-            
-        elif  instruction=='b':
-            GPIO.output(in1, False)
-            GPIO.output(in2, True)
-            GPIO.output(in3, False)
-            GPIO.output(in4, True)
-            
-        elif  instruction=='s':
-            GPIO.output(in1, True)
-            GPIO.output(in2, True)
-            GPIO.output(in3, True)
-            GPIO.output(in4, True)
-            
-        elif  instruction=='r':
-            GPIO.output(in1, True)
-            GPIO.output(in2, False)
-            GPIO.output(in3, True)
-            GPIO.output(in4, True)
+
+def motor_cntrl(instruction, speed=70):
+    mtr1_pwm.start(0)
+    mtr2_pwm.start(0)
+    if instruction=='f':
+        GPIO.output(dir1, True)
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+    
+    elif instruction=='b':
+        GPIO.output(dir1, False)
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+
+    elif instruction=='l':
+        GPIO.output(dir1, True)
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+
+    elif instruction=='r':
+        GPIO.output(dir1, False)
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(speed)
+    
+    elif instruction=='fl':
+        GPIO.output(dir1, True)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(0)
+
+    elif instruction=='br':
+        GPIO.output(dir2, False)
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(speed)
+
+    elif instruction=='fr':
+        GPIO.output(dir2, True)
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(speed)
+
+    elif instruction=='bl':
+        GPIO.output(dir1, False)
+        mtr1_pwm.ChangeDutyCycle(speed)
+        mtr2_pwm.ChangeDutyCycle(0)
+    
+    elif instruction=='s':
+        mtr1_pwm.ChangeDutyCycle(0)
+        mtr2_pwm.ChangeDutyCycle(0)
+    elif instruction=='++' and speed<100:
+        speed+=10
+    elif instruction=='--' and speed>10:
+        speed-=10
+    else:
+        print('not able to unsderstand instruction')
         
-        elif  instruction=='br':
-            GPIO.output(in1, False)
-            GPIO.output(in2, True)
-            GPIO.output(in3, True)
-            GPIO.output(in4, True)
-            
-            
-        elif instruction=='l':
-            GPIO.output(in1, True)
-            GPIO.output(in2, True)
-            GPIO.output(in3, True)
-            GPIO.output(in4, False)
-        elif instruction=='bl':
-            GPIO.output(in1, True)
-            GPIO.output(in2, True)
-            GPIO.output(in3, False)
-            GPIO.output(in4, True)
-
-
 
 
 def mouth_pst(instruction, rly_pin=32):
@@ -178,6 +191,22 @@ def hover_cntrl(instruction, in1=37, in2=35):
         GPIO.output(in1, GPIO.LOW)
         GPIO.output(in2, GPIO.LOW)
         print('Hover stop')
+
+# def manual_control():
+#     print('Pi controls started')
+#     while True:
+#         ins_type, ins = input().split()
+#         if ins_type == 'm':
+#             motor_cntrl(ins)
+#         elif ins_type == 'pp':
+#             plnt_pst(ins)
+#         elif ins_type == 'mp':
+#             mouth_pst(ins)
+#         elif ins_type == 'h':
+#             hover_cntrl(ins)
+#         else:
+#             print('Unable execute instruction')
+        
 
 
 
