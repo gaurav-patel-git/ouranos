@@ -7,44 +7,6 @@ import haversine as hs
 from haversine import Unit
 import py_qmc5883l
 
-# baud_rate = 9600
-# timeout = 1
-# heading = 0
-
-# def sanetize_heading(head):
-#     global heading
-#     try:
-#         heading = int(head)
-#     except ValueError: 
-#         heading = int(head[0:2])
-#     except: 
-#         heading = int(head[0])
-# def get_mag_bearing():
-#     global heading
-#     while True:
-#         num = 0
-#         try:
-#             ser =  serial.Serial(f'/dev/ttyUSB{num}', baud_rate)
-#         except: 
-#             num += 1
-#             ser =  serial.Serial(f'/dev/ttyUSB{num}', baud_rate)
-#         try:
-#             line = str(ser.readline())
-#             print(line)
-#             head = line[2:5]
-#             # print(head, 'head')
-#             sanetize_heading(head)
-#             # heading = int(heading) if heading[0] != ':' else int(heading[1:])                
-#             print(heading)
-#         except: 
-#             print('Problem in getting degree')
-#             time.sleep(0.1)
-#         ser.close()
-#         time.sleep(0.1)
-
-
-
-
 class Agrobot:
     
     def __init__(self, dest_pos):
@@ -225,15 +187,5 @@ def distance_left():
 dis_thread = threading.Thread(target=(distance_left))
 dis_thread.start()
 radius, head_error = 2, 12
-# bot.navigate(radius, head_error)
-while True:
-    bot.move('f')
-    print('forward for 2sec')
-    time.sleep(10)
-    bot.move('s')
-    time.sleep(5)
-    bot.move('b')
-    print('back for 2 sec')
-    time.sleep(10)
-    bot.move('s')
-    time.sleep(5)
+bot.navigate(radius, head_error)
+
